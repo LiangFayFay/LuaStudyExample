@@ -4,28 +4,29 @@
 --- DateTime: 2020/12/22 16:18
 ---
 
+
 local controller = "Scripts.Controller."
 local model = "Scripts.Model."
 local view = "Scripts.View."
+local global = "Scripts.Global."
 
 -- Controllers
-LoginController = require(controller + "LoginController")
-SignupController = require(controller + "SignupController")
-NormalTipController = require(controller + "NormalTipController")
+LoginController = require(controller .. "LoginController")
+SignupController = require(controller .. "SignupController")
+NormalTipController = require(controller .. "NormalTipController")
 
 -- Models
-LoginModel = require(model + "LoginModel")
-NormalTipModel = require(model + "NormalTipModel")
-SignupModel = require(model + "SignupModel")
-UserDataModel = require(model + "UserDataModel")
+LoginModel = require(model .. "LoginModel")
+NormalTipModel = require(model .. "NormalTipModel")
+SignupModel = require(model .. "SignupModel")
+UserDataModel = require(model .. "UserDataModel")
 
 -- Views
-LoginView = require(view + "LoginView")
-SignupView = require(view + "SignupView")
-NormalTipView = require(view + "NormalTipView")
+LoginView = require(view .. "LoginView")
+SignupView = require(view .. "SignupView")
+NormalTipView = require(view .. "NormalTipView")
+
+-- Others
+Util = require(global .. "Util")
 
 print("lua init finish")
-
-
-
-

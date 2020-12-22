@@ -3,10 +3,7 @@
 --- Created by DELL.
 --- DateTime: 2020/12/22 11:20
 ---
----
----
 
-require("Scripts.Global.Init")
 local AllCpt = {}
 
 AllCpt.tipBar = tipBar.gameObject
@@ -14,15 +11,17 @@ AllCpt.tipText = tipText:GetComponent(typeof(CS.UnityEngine.UI.Text))
 AllCpt.login_panel = login_panel.gameObject
 AllCpt.signup_panel = signup_panel.gameObject
 AllCpt.success_panel = success_panel.gameObject
-AllCpt.login_usr = login_username:GetComponent("InputField")
-AllCpt.login_pwd = login_password:GetComponent("InputField")
-AllCpt.signup_usr = signup_username:GetComponent("InputField")
-AllCpt.signup_pwd01 = signup_password01:GetComponent("InputField")
-AllCpt.signup_pwd02 = signup_password02:GetComponent("InputField")
+AllCpt.login_username = login_username:GetComponent("InputField")
+AllCpt.login_password = login_password:GetComponent("InputField")
+AllCpt.signup_username = signup_username:GetComponent("InputField")
+AllCpt.signup_password01 = signup_password01:GetComponent("InputField")
+AllCpt.signup_password02 = signup_password02:GetComponent("InputField")
 AllCpt.login_btn_login = login_btn_login:GetComponent("Button")
 AllCpt.login_btn_signup = login_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_signup = signup_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_back = signup_btn_back:GetComponent("Button")
 
-CptCenter = AllCpt
+require("Scripts.Global.CptCenter").init(AllCpt)
+require("Scripts.Global.Init")
+
 print("all components have loaded")

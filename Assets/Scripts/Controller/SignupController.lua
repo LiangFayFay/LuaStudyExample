@@ -32,13 +32,13 @@ function SignupController.signupClick(usr, pwd01, pwd02)
     if avail then
         SignupController.onSuccess(usr, pwd01)
     else
-        NrmalTipController.showTip(tipText)
+        NormalTipController.showTip(tipText)
     end
 end
 
 function SignupController.onSuccess(usr, pwd)
     UserDataModel.addUser(usr, pwd)
-    SignupController.hidePanel()
+    SignupController.backClick()
 end
 
 function SignupController.backClick()

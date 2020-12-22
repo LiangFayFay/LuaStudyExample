@@ -15,7 +15,7 @@ function LoginController.loginClick(usr,pwd)
         avail = false
     end
 
-    if pwd and avail then
+    if pwd == "" and avail then
         tipText = "密码为空"
         avail = false
     end
@@ -47,6 +47,7 @@ function LoginController.showPanel()
 end
 
 function LoginController.loginSuccess()
+    
     LoginView.onSuccess()
 end
 

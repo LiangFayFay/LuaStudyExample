@@ -6,7 +6,22 @@
 local NormalTipView = {}
 
 print("NormalTip")
-local cs_coroutine = require 'cs_coroutine'
+
+
+local object = CS.UnityEngine.GameObject('Coroutine_Runner')
+CS.UnityEngine.Object.DontDestroyOnLoad(object)
+local cs_coroutine_runner = object:AddComponent(typeof(CS.XLuaTest.Coroutine_Runner))
+
+local cs_coroutine = {
+    start = function(...)
+        return cs_coroutine_runner:StartCoroutine(Util.cs_generator(...))
+    end;
+
+    stop = function(coroutine)
+        cs_coroutine_runner:StopCoroutine(coroutine)
+    end
+} 
+
 local isShowing = false
 local tip = CptCenter.tipBar
 local tipText = CptCenter.tipText

@@ -4,7 +4,7 @@
 --- DateTime: 2020/12/22 11:16
 ---
 
-local users = {}
+Users = {}
 local UserDataModel = {}
 
 function UserDataModel.addUser(mName, mPwd)
@@ -12,13 +12,13 @@ function UserDataModel.addUser(mName, mPwd)
     local user = {}
     user.username = mName
     user.password = mPwd
-    table.insert(users, user)
-    print(#users)
+    table.insert(Users, user)
+    print(#Users)
 end
 
 function UserDataModel.getUser(mName)
-    print("getuser:" .. #users)
-    for key, value in pairs(users) do
+    print("getuser:" .. #Users)
+    for key, value in pairs(Users) do
         print("key:" .. key .. "value.username:" .. value.username .. "value.password:" .. value.password)
         if value.username == mName then
             return true
@@ -30,7 +30,7 @@ end
 
 function UserDataModel.checkUser(mName, mPwd)
     print("checkUser")
-    for key, value in pairs(users) do
+    for key, value in pairs(Users) do
         if value.username == mName and value.password == mPwd then
             return true
         end

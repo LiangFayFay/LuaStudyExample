@@ -26,7 +26,7 @@ end
 
 function LoginView.onSuccess()
     LoginView.hide()
-    CptCenter.loginSuccess:SetActive(true)
+    CptCenter.success_panel:SetActive(true)
 end
 
 return LoginView

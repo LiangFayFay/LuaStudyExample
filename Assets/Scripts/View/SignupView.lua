@@ -6,11 +6,11 @@
 
 local SignupView = {}
 
-CptCenter.Signup_btn_signup.onClick:AddListener(function()
-    SignupController.signupClick(CptCenter.signup_username,CptCenter.signup_password01,CptCenter.signup_password02)
+CptCenter.signup_btn_signup.onClick:AddListener(function()
+    SignupController.signupClick(CptCenter.signup_username.text,CptCenter.signup_password01.text,CptCenter.signup_password02.text)
 end)
 
-CptCenter.Signup_btn_back.onClick:AddListener(function()
+CptCenter.signup_btn_back.onClick:AddListener(function()
     SignupController.backClick()
 end)
 
