@@ -407,7 +407,6 @@ GameObject:
   - component: {fileID: 117895791}
   - component: {fileID: 117895794}
   - component: {fileID: 117895793}
-  - component: {fileID: 117895792}
   m_Layer: 5
   m_Name: SignUpPage
   m_TagString: Untagged
@@ -440,32 +439,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &117895792
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 117895790}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9698e6b794124fd791b55e604f09cec2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  luaScript: {fileID: 4900000, guid: cb8f9e0a8a3a442aa2e7f705d5a566b1, type: 3}
-  myStructs:
-  - Name: btn_back
-    Value: {fileID: 983076762}
-  - Name: btn_signup
-    Value: {fileID: 61819578}
-  - Name: input_username
-    Value: {fileID: 235556436}
-  - Name: input_password01
-    Value: {fileID: 123786554}
-  - Name: input_password02
-    Value: {fileID: 1379550165}
-  - Name: page_login
-    Value: {fileID: 1551812342}
 --- !u!114 &117895793
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1076,7 +1049,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &396325089
 RectTransform:
   m_ObjectHideFlags: 0
@@ -1616,7 +1589,7 @@ RectTransform:
   - {fileID: 1306183452}
   - {fileID: 630771291}
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -1825,7 +1798,7 @@ Transform:
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &630771290
 GameObject:
@@ -2102,7 +2075,7 @@ Transform:
   - {fileID: 971355234}
   - {fileID: 2005660030}
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &695073172
 GameObject:
@@ -2553,13 +2526,56 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 792871054}
+  - component: {fileID: 792871053}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: LuaInit
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &792871053
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 792871052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 509c5f7feb2840d487d5adf985933639, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  luaScript: {fileID: 4900000, guid: b938d34e227e45b68e192a722a7296de, type: 3}
+  myStructs:
+  - Name: tipBar
+    Value: {fileID: 630771290}
+  - Name: tipText
+    Value: {fileID: 994456845}
+  - Name: login_panel
+    Value: {fileID: 1551812342}
+  - Name: signup_panel
+    Value: {fileID: 117895790}
+  - Name: success_panel
+    Value: {fileID: 1306183451}
+  - Name: login_username
+    Value: {fileID: 1327110585}
+  - Name: login_password
+    Value: {fileID: 935742397}
+  - Name: signup_username
+    Value: {fileID: 235556436}
+  - Name: signup_password01
+    Value: {fileID: 123786554}
+  - Name: signup_password02
+    Value: {fileID: 1379550165}
+  - Name: login_btn_login
+    Value: {fileID: 479930830}
+  - Name: login_btn_signup
+    Value: {fileID: 1269087845}
+  - Name: signup_btn_signup
+    Value: {fileID: 61819578}
+  - Name: signup_btn_back
+    Value: {fileID: 983076762}
 --- !u!4 &792871054
 Transform:
   m_ObjectHideFlags: 0
@@ -2572,7 +2588,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &808463527
 GameObject:
@@ -3397,7 +3413,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1017701181
 GameObject:
@@ -4289,7 +4305,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 339}
-  m_SizeDelta: {x: 400, y: 112}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1347542327
 MonoBehaviour:
@@ -4694,14 +4710,13 @@ GameObject:
   - component: {fileID: 1551812343}
   - component: {fileID: 1551812346}
   - component: {fileID: 1551812345}
-  - component: {fileID: 1551812347}
   m_Layer: 5
   m_Name: LoginPage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1551812343
 RectTransform:
   m_ObjectHideFlags: 0
@@ -4763,32 +4778,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1551812342}
   m_CullTransparentMesh: 0
---- !u!114 &1551812347
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1551812342}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63ca08e1acf4484ead9b4f214d79b1a2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  luaScript: {fileID: 4900000, guid: 4ff300e6b4eb437198f8916452f3e6ed, type: 3}
-  myStructs:
-  - Name: input_username
-    Value: {fileID: 1327110585}
-  - Name: input_password
-    Value: {fileID: 935742397}
-  - Name: btn_login
-    Value: {fileID: 479930830}
-  - Name: btn_signup
-    Value: {fileID: 1269087845}
-  - Name: page_signup
-    Value: {fileID: 117895790}
-  - Name: page_success
-    Value: {fileID: 1306183451}
 --- !u!1 &1611212649
 GameObject:
   m_ObjectHideFlags: 0

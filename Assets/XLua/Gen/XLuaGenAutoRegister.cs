@@ -160,6 +160,9 @@ namespace XLua.CSObjectWrap
             translator.DelayWrapLoader(typeof(XLuaTest.FooExtension), XLuaTestFooExtensionWrap.__Register);
         
         
+            translator.DelayWrapLoader(typeof(DefaultNamespace.LuaInit), DefaultNamespaceLuaInitWrap.__Register);
+        
+        
             translator.DelayWrapLoader(typeof(DefaultNamespace.LuaScriptBase), DefaultNamespaceLuaScriptBaseWrap.__Register);
         
         
@@ -171,9 +174,11 @@ namespace XLua.CSObjectWrap
         
             translator.DelayWrapLoader(typeof(Tutorial.DerivedClass.TestEnumInner), TutorialDerivedClassTestEnumInnerWrap.__Register);
         
-        
-        
         }
+        
+        
+        
+        
         
         static void Init(LuaEnv luaenv, ObjectTranslator translator)
         {
