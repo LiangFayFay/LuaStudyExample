@@ -12,7 +12,7 @@ local cs_coroutine_runner = gameobject:AddComponent(typeof(CS.XLuaTest.Coroutine
 
 return {
     start = function(...)
-	    return cs_coroutine_runner:StartCoroutine(util.cs_generator(...))
+	    return cs_coroutine_runner:StartCoroutine(util:cs_generator(...))
 	end;
 
 	stop = function(coroutine)
