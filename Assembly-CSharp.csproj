@@ -142,6 +142,7 @@
      <Compile Include="Assets\Scripts\CSharp\NormalTip.cs" />
      <Compile Include="Assets\Scripts\CSharp\SignUp.cs" />
      <Compile Include="Assets\Scripts\CSharp\Users.cs" />
+     <Compile Include="Assets\Scripts\CSharp\XLuaCustomExport.cs" />
      <Compile Include="Assets\XLua\Examples\01_Helloworld\Helloworld.cs" />
      <Compile Include="Assets\XLua\Examples\02_U3DScripting\LuaBehaviour.cs" />
      <Compile Include="Assets\XLua\Examples\04_LuaObjectOrented\InvokeLua.cs" />
@@ -159,6 +160,18 @@
      <Compile Include="Assets\XLua\Examples\11_RawObject\RawObjectTest.cs" />
      <Compile Include="Assets\XLua\Examples\12_ReImplementInLua\ReImplementInLua.cs" />
      <Compile Include="Assets\XLua\Examples\ExampleGenConfig.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_Core_ABSSequentiableWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_Core_TweenerCore_3_UnityEngine_Vector3_UnityEngine_Vector3_DG_Tweening_Plugins_Options_VectorOptions_Wrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_DOTweenWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_DOVirtualWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_EaseFactoryWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_SequenceWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_ShortcutExtensionsWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_TweenExtensionsWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_TweenParamsWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_TweenSettingsExtensionsWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_TweenWrap.cs" />
+     <Compile Include="Assets\XLua\Gen\DG_Tweening_TweenerWrap.cs" />
      <Compile Include="Assets\XLua\Gen\DefaultNamespace_LuaInitWrap.cs" />
      <Compile Include="Assets\XLua\Gen\DefaultNamespace_LuaScriptBaseWrap.cs" />
      <Compile Include="Assets\XLua\Gen\DefaultNamespace_UserStructWrap.cs" />
@@ -464,6 +477,9 @@
  </Reference>
  <Reference Include="UnityEngine.XRModule">
  <HintPath>C:/Program Files/Unity/2019_4_12/Editor/Data/Managed/UnityEngine/UnityEngine.XRModule.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween">
+ <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/DOTween.dll</HintPath>
  </Reference>
  <Reference Include="mscorlib">
  <HintPath>C:/Program Files/Unity/2019_4_12/Editor/Data/MonoBleedingEdge/lib/mono/4.7.1-api/mscorlib.dll</HintPath>
@@ -819,6 +835,12 @@
  <Reference Include="Boo.Lang">
  <HintPath>C:/Program Files/Unity/2019_4_12/Editor/Data/MonoBleedingEdge/lib/mono/unityscript/Boo.Lang.dll</HintPath>
  </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{14C14E9A-05B3-AAB0-359E-1B43A67E129C}</Project>
+      <Name>Assembly-CSharp-firstpass</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

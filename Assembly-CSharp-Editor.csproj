@@ -321,6 +321,12 @@
  <Reference Include="UnityEditor.Android.Extensions">
  <HintPath>C:/Program Files/Unity/2019_4_12/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll</HintPath>
  </Reference>
+ <Reference Include="DOTweenEditor">
+ <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/Editor/DOTweenEditor.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTween">
+ <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/DOTween.dll</HintPath>
+ </Reference>
  <Reference Include="nunit.framework">
  <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Library/PackageCache/com.unity.ext.nunit@1.0.0/net35/unity-custom/nunit.framework.dll</HintPath>
  </Reference>
@@ -680,6 +686,10 @@
  </Reference>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="Assembly-CSharp-firstpass.csproj">
+      <Project>{14C14E9A-05B3-AAB0-359E-1B43A67E129C}</Project>
+      <Name>Assembly-CSharp-firstpass</Name>
+    </ProjectReference>
     <ProjectReference Include="Assembly-CSharp.csproj">
       <Project>{F66B2218-980F-D8FB-9F33-E04E511F625D}</Project>
       <Name>Assembly-CSharp</Name>

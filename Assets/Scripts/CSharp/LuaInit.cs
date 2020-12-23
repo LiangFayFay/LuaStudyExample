@@ -12,6 +12,7 @@ namespace DefaultNamespace
         [SerializeField] private TextAsset luaScript;
         [SerializeField] private MyStruct[] myStructs;
         [SerializeField] private MyStruct[] dialog;
+        [SerializeField] private MyStruct[] theme;
 
 
         private void Awake()
@@ -30,6 +31,11 @@ namespace DefaultNamespace
             }
 
             foreach (var item in dialog)
+            {
+                luaTable.Set(item.Name, item.Value);
+            }
+            
+            foreach (var item in theme)
             {
                 luaTable.Set(item.Name, item.Value);
             }
