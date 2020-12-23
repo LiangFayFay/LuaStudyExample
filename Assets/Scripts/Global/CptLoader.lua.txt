@@ -6,27 +6,60 @@
 
 local AllCpt = {}
 
+-- normalTip
 AllCpt.tipBar = tipBar.gameObject
 AllCpt.tipText = tipText:GetComponent(typeof(CS.UnityEngine.UI.Text))
+
+-- loginPage
 AllCpt.login_panel = login_panel.gameObject
-AllCpt.signup_panel = signup_panel.gameObject
-AllCpt.success_panel = success_panel.gameObject
 AllCpt.login_username = login_username:GetComponent("InputField")
 AllCpt.login_password = login_password:GetComponent("InputField")
+AllCpt.login_btn_login = login_btn_login:GetComponent("Button")
+AllCpt.login_btn_signup = login_btn_signup:GetComponent("Button")
+
+-- signupPage
+AllCpt.signup_panel = signup_panel.gameObject
 AllCpt.signup_username = signup_username:GetComponent("InputField")
 AllCpt.signup_password01 = signup_password01:GetComponent("InputField")
 AllCpt.signup_password02 = signup_password02:GetComponent("InputField")
-AllCpt.login_btn_login = login_btn_login:GetComponent("Button")
-AllCpt.login_btn_signup = login_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_signup = signup_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_back = signup_btn_back:GetComponent("Button")
+
+-- normalDialog
 AllCpt.dialog_btn_confirm = dialog_btn_confirm:GetComponent("Button")
 AllCpt.dialog_btn_cancel = dialog_btn_cancel:GetComponent("Button")
 AllCpt.dialog_txt_tip = dialog_txt_tip:GetComponent(typeof(CS.UnityEngine.UI.Text))
 AllCpt.dialog_panel = dialog_panel.gameObject
+
+-- successPage
+AllCpt.success_panel = success_panel.gameObject
 AllCpt.btn_quit = btn_quit:GetComponent("Button")
+
+-- theme
+AllCpt.theme_bg_img = theme_bg_img:GetComponent("Image")
+AllCpt.theme_panel = theme_panel.gameObject
+AllCpt.theme_btn_close = theme_btn_close:GetComponent("Button")
+AllCpt.theme_btn_open = theme_btn_open:GetComponent("Button")
+AllCpt.theme_btn_bg01 = theme_btn_bg01:GetComponent("Button")
+AllCpt.theme_btn_bg02 = theme_btn_bg02:GetComponent("Button")
+AllCpt.theme_btn_bg03 = theme_btn_bg03:GetComponent("Button")
+AllCpt.theme_btn_bg04 = theme_btn_bg04:GetComponent("Button")
+AllCpt.theme_btn_bg05 = theme_btn_bg05:GetComponent("Button")
+AllCpt.theme_btn_bg06 = theme_btn_bg06:GetComponent("Button")
+AllCpt.theme_img_01 = theme_img_01:GetComponent("Image")
+AllCpt.theme_img_02 = theme_img_02:GetComponent("Image")
+AllCpt.theme_img_03 = theme_img_03:GetComponent("Image")
+AllCpt.theme_img_04 = theme_img_04:GetComponent("Image")
+AllCpt.theme_img_05 = theme_img_05:GetComponent("Image")
+AllCpt.theme_img_06 = theme_img_06:GetComponent("Image")
+AllCpt.theme_mask_01 = theme_mask_01.gameObject
+AllCpt.theme_mask_02 = theme_mask_02.gameObject
+AllCpt.theme_mask_03 = theme_mask_03.gameObject
+AllCpt.theme_mask_04 = theme_mask_04.gameObject
+AllCpt.theme_mask_05 = theme_mask_05.gameObject
+AllCpt.theme_mask_06 = theme_mask_06.gameObject
 
 require("Scripts.Global.CptCenter").init(AllCpt)
 require("Scripts.Global.Init")
 
-print("all components have loaded")
+print("all components load finish")

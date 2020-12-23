@@ -14,7 +14,7 @@ function SignupController.signupClick(usr, pwd01, pwd02)
         avail = false
     end
 
-    if pwd01 == "" or pwd02 == "" and avail then
+    if (pwd01 == "" or pwd02 == "") and avail then
         tipText = "密码为空"
         avail = false
     end
