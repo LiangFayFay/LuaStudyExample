@@ -47,8 +47,8 @@ function LoginController.showPanel()
 end
 
 function LoginController.loginSuccess()
-    
-    LoginView.onSuccess()
+    LoginController.hidePanel()
+    SuccessController.showPanel()
 end
 
 function LoginController.hidePanel()

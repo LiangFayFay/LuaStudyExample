@@ -24,9 +24,10 @@ function LoginView.show()
     CptCenter.login_panel:SetActive(true)
 end
 
-function LoginView.onSuccess()
-    LoginView.hide()
-    CptCenter.success_panel:SetActive(true)
+function LoginView.hide()
+    CptCenter.login_panel:SetActive(false)
+    CptCenter.login_username.text = ""
+    CptCenter.login_password.text = ""
 end
 
 return LoginView

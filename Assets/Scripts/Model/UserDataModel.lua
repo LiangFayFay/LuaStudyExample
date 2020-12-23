@@ -4,7 +4,7 @@
 --- DateTime: 2020/12/22 11:16
 ---
 
-Users = {}
+Users = { { username = 'admin', password = 'admin' } }
 local UserDataModel = {}
 
 function UserDataModel.addUser(mName, mPwd)

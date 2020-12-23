@@ -20,6 +20,11 @@ AllCpt.login_btn_login = login_btn_login:GetComponent("Button")
 AllCpt.login_btn_signup = login_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_signup = signup_btn_signup:GetComponent("Button")
 AllCpt.signup_btn_back = signup_btn_back:GetComponent("Button")
+AllCpt.dialog_btn_confirm = dialog_btn_confirm:GetComponent("Button")
+AllCpt.dialog_btn_cancel = dialog_btn_cancel:GetComponent("Button")
+AllCpt.dialog_txt_tip = dialog_txt_tip:GetComponent(typeof(CS.UnityEngine.UI.Text))
+AllCpt.dialog_panel = dialog_panel.gameObject
+AllCpt.btn_quit = btn_quit:GetComponent("Button")
 
 require("Scripts.Global.CptCenter").init(AllCpt)
 require("Scripts.Global.Init")

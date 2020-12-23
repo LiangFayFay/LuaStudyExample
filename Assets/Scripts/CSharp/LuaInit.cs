@@ -11,12 +11,12 @@ namespace DefaultNamespace
     {
         [SerializeField] private TextAsset luaScript;
         [SerializeField] private MyStruct[] myStructs;
+        [SerializeField] private MyStruct[] dialog;
 
 
         private void Awake()
         {
             var luaEnv = LuaEnvManager.Instance.GetEnv();
-            
             luaEnv.AddLoader(LuaCodeLoader);
             var luaTable = luaEnv.NewTable();
             var metaTable = luaEnv.NewTable();
@@ -29,22 +29,18 @@ namespace DefaultNamespace
                 luaTable.Set(item.Name, item.Value);
             }
 
+            foreach (var item in dialog)
+            {
+                luaTable.Set(item.Name, item.Value);
+            }
+
             luaEnv.DoString(luaScript.text, "Error", luaTable);
         }
 
         private byte[] LuaCodeLoader(ref string filePath)
         {
             var relPath = filePath.Replace(".", "/");
-            string s = File.ReadAllText(Application.dataPath + "/" + relPath + ".lua");
-            var subDir = new List<string>()
-            {
-                ""
-
-            };
-            for (int i = 0; i < 3; i++)
-            {
-                
-            }
+            var s = File.ReadAllText(Application.dataPath + "/" + relPath + ".lua");
             return System.Text.Encoding.UTF8.GetBytes(s);
         }
     }
