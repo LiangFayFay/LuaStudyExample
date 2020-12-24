@@ -7,27 +7,44 @@
 local LoginView = {}
 
 CptCenter.login_btn_login.onClick:AddListener(function()
-    LoginController.loginClick(CptCenter.login_username.text,CptCenter.login_password.text)
+    LoginController.loginClick(CptCenter.login_username.text, CptCenter.login_password.text,CptCenter.login_btn_remember_me.isOn,CptCenter.login_btn_auto_login.isOn)
 end)
 
 CptCenter.login_btn_signup.onClick:AddListener(function()
     LoginController.signupClick()
 end)
 
+CptCenter.login_btn_remember_me.onValueChanged:AddListener(function()
+    local value = CptCenter.login_btn_remember_me.isOn
+    if not value then
+        CptCenter.login_btn_auto_login.isOn = false
+    end
+end)
+
+CptCenter.login_btn_auto_login.onValueChanged:AddListener(function()
+    local value = CptCenter.login_btn_auto_login.isOn
+    if value then
+        CptCenter.login_btn_remember_me.isOn = true
+    end
+end)
+
 function LoginView.hide()
     CptCenter.login_panel:SetActive(false)
     CptCenter.login_username.text = ""
     CptCenter.login_password.text = ""
+    CptCenter.login_btn_auto_login.isOn = false
+    CptCenter.login_btn_remember_me.isOn = false
 end
 
 function LoginView.show()
     CptCenter.login_panel:SetActive(true)
 end
 
-function LoginView.hide()
-    CptCenter.login_panel:SetActive(false)
-    CptCenter.login_username.text = ""
-    CptCenter.login_password.text = ""
+function LoginView.setView(usr,pwd,remember,autoLogin)
+    CptCenter.login_username.text = usr
+    CptCenter.login_password.text = pwd
+    CptCenter.login_btn_remember_me.isOn = remember
+    CptCenter.login_btn_auto_login.isOn = autoLogin
 end
 
 return LoginView

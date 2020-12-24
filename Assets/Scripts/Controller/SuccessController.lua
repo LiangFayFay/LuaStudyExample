@@ -16,6 +16,7 @@ end
 
 function SuccessController.quit()
     SuccessController.hidePanel()
+    LoginController.setView(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
     LoginController.showPanel()
 end
 

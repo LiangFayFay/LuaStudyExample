@@ -6,7 +6,7 @@
 
 local ThemeModel = {}
 ThemeModel.themeIDList = { '01', '02', '03', '04', '05', '06' }
-ThemeModel.defaultThemeID = "01"
+ThemeModel.defaultThemeID = "06"
 ThemeModel.curThemeID = nil
 
 function ThemeModel.setCurTheme(id)

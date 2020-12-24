@@ -31,8 +31,12 @@ function ThemeController.onCloseClick()
 end 
 
 function ThemeController.setDefaultTheme()
-    local id = ThemeModel.getCurThemeID()
+    local id = ThemeModel.getDefaultThemeID()
     ThemeController.setTheme(id)
+end
+
+function ThemeController.init()
+    ThemeController.setDefaultTheme()
 end
 
 return ThemeController

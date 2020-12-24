@@ -4,7 +4,6 @@
 --- DateTime: 2020/12/22 16:18
 ---
 
-
 local controller = "Scripts.Controller."
 local model = "Scripts.Model."
 local view = "Scripts.View."
@@ -17,6 +16,7 @@ NormalTipController = require(controller .. "NormalTipController")
 DialogController = require(controller .. "DialogController")
 SuccessController = require(controller .. "SuccessController")
 ThemeController = require(controller .. "ThemeController")
+UserDataController = require(controller .. "UserDataController")
 
 -- Models
 LoginModel = require(model .. "LoginModel")
@@ -36,5 +36,13 @@ ThemeView = require(view .. "ThemeView")
 
 -- Global
 Util = require(global .. "Util")
+Json = require(global .. "Json")
+IOManager = require(global .. "IOManager")
+CurUser = {}
+Users = {}
 
 print("all variate init finish")
+
+ThemeController.init()
+UserDataController.init()
+LoginController.init()

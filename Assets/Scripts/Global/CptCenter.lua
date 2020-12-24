@@ -9,4 +9,4 @@ function CptCenter.init(table)
     CptCenter = table
 end 
 
-return CptCenter
+return CptCenter    

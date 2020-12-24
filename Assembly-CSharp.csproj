@@ -265,6 +265,7 @@
      <None Include="Assets\XLua\Examples\06_Coroutine\Resources\coruntine_test.lua.txt" />
      <None Include="Assets\XLua\Resources\xlua\util.lua.txt" />
      <None Include="Assets\EasyTouchBundle\EasyTouch\_Documentation\How to migrate from EasyTouch 4.X.txt" />
+     <None Include="Assets\Resources\UserData\userdata.txt" />
      <None Include="Assets\Scripts\Others\Test02.lua.txt" />
      <None Include="Assets\EasyTouchBundle\EasyTouchControls\ReleaseNotes.txt" />
      <None Include="Assets\XLua\Resources\perf\profiler.lua.txt" />
