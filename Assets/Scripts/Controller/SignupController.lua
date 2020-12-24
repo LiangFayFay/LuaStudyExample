@@ -24,7 +24,7 @@ function SignupController.signupClick(usr, pwd01, pwd02)
         avail = false
     end
 
-    if UserDataModel.getUser(usr) and avail then
+    if UserDataController.getUser(usr) and avail then
         tipText = "用户已存在"
         avail = false
     end
@@ -37,7 +37,7 @@ function SignupController.signupClick(usr, pwd01, pwd02)
 end
 
 function SignupController.onSuccess(usr, pwd)
-    UserDataModel.addUser(usr, pwd)
+    UserDataController.addUser(usr, pwd)
     SignupController.backClick()
 end
 

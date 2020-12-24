@@ -16,6 +16,8 @@ AllCpt.login_username = login_username:GetComponent("InputField")
 AllCpt.login_password = login_password:GetComponent("InputField")
 AllCpt.login_btn_login = login_btn_login:GetComponent("Button")
 AllCpt.login_btn_signup = login_btn_signup:GetComponent("Button")
+AllCpt.login_btn_remember_me = login_btn_remember_me:GetComponent("Toggle")
+AllCpt.login_btn_auto_login = login_btn_auto_login:GetComponent("Toggle")
 
 -- signupPage
 AllCpt.signup_panel = signup_panel.gameObject

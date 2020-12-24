@@ -7,7 +7,7 @@
 
 local LoginController = {}
 
-function LoginController.loginClick(usr,pwd)
+function LoginController.loginClick(usr, pwd, remember, autoLogin)
     local tipText = nil
     local avail = true
     if usr == "" and avail then
@@ -20,18 +20,18 @@ function LoginController.loginClick(usr,pwd)
         avail = false
     end
 
-    if not UserDataModel.getUser(usr) and avail then
+    if not UserDataController.getUser(usr) and avail then
         tipText = "用戶不存在"
         avail = false
     end
 
-    if not UserDataModel.checkUser(usr,pwd) and avail then
+    if not UserDataController.checkUser(usr, pwd) and avail then
         tipText = "账号或者密码错误"
         avail = false
     end
 
     if avail then
-        LoginController.loginSuccess()
+        LoginController.loginSuccess(usr, pwd, remember, autoLogin)
     else
         NormalTipController.showTip(tipText)
     end
@@ -46,13 +46,30 @@ function LoginController.showPanel()
     LoginView.show()
 end
 
-function LoginController.loginSuccess()
+function LoginController.loginSuccess(usr, pwd, remember, autoLogin)
+    UserDataController.setCurUserState(usr, pwd, remember, autoLogin)
     LoginController.hidePanel()
     SuccessController.showPanel()
 end
 
 function LoginController.hidePanel()
     LoginView.hide()
+end
+
+function LoginController.setView(usr, pwd, remember, autoLogin)
+    LoginView.setView(usr, pwd, remember, autoLogin)
+end
+
+function LoginController.init()
+    if CurUser.remember then
+        LoginController.setView(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
+    else
+        LoginController.setView(CurUser.username, '', false, false)
+    end
+
+    if CurUser.autoLogin then
+        LoginController.loginClick(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
+    end
 end
 
 return LoginController

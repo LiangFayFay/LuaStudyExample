@@ -44,7 +44,6 @@ function ThemeView.setTheme(id)
 
     CptCenter.theme_bg_img.sprite = CptCenter['theme_img_' .. id].sprite
     CptCenter['theme_mask_' .. id]:SetActive(true)
-
 end
 
 function ThemeView.showPanel()
