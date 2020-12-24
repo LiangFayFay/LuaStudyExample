@@ -1,1 +1,0 @@
-{"cur":{"autoLogin":false,"password":"123","remember":false,"username":"123"},"users":[{"autoLogin":true,"password":"admin","remember":true,"username":"admin"},{"autoLogin":false,"password":"123","remember":false,"username":"123"}]}
