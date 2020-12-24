@@ -4,7 +4,6 @@
 --- DateTime: 2020/12/22 11:06
 ---
 
-
 local LoginController = {}
 
 function LoginController.loginClick(usr, pwd, remember, autoLogin)
@@ -57,16 +56,14 @@ function LoginController.hidePanel()
 end
 
 function LoginController.setView(usr, pwd, remember, autoLogin)
+    if not remember then
+        pwd = ""
+    end
     LoginView.setView(usr, pwd, remember, autoLogin)
 end
 
 function LoginController.init()
-    if CurUser.remember then
-        LoginController.setView(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
-    else
-        LoginController.setView(CurUser.username, '', false, false)
-    end
-
+    LoginController.setView(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
     if CurUser.autoLogin then
         LoginController.loginClick(CurUser.username, CurUser.password, CurUser.remember, CurUser.autoLogin)
     end

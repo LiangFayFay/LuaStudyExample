@@ -321,11 +321,11 @@
  <Reference Include="UnityEditor.Android.Extensions">
  <HintPath>C:/Program Files/Unity/2019_4_12/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll</HintPath>
  </Reference>
- <Reference Include="DOTweenEditor">
- <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/Editor/DOTweenEditor.dll</HintPath>
- </Reference>
  <Reference Include="DOTween">
  <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/DOTween.dll</HintPath>
+ </Reference>
+ <Reference Include="DOTweenEditor">
+ <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Assets/Plugins/DOTween/Editor/DOTweenEditor.dll</HintPath>
  </Reference>
  <Reference Include="nunit.framework">
  <HintPath>C:/Users/DELL/RiderProjects/LuaStudyExample/Library/PackageCache/com.unity.ext.nunit@1.0.0/net35/unity-custom/nunit.framework.dll</HintPath>
