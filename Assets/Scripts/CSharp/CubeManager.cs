@@ -1,7 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
+using UnityEngine.UI;
 using Random = System.Random;
 
 namespace CSharp
@@ -16,17 +18,34 @@ namespace CSharp
     {
         public GameObject cube;
         public Transform trans;
-        private CubeArray[] cubeArray = new CubeArray[27];
+        public Button disrupt;
+        public Button restore;
+        public Button confirm;
+        public Transform dialog;
+
+        private const float Angle = 90f;
+        private const float Speed = 0.02f;
+
         private int len = 0;
+        private int direction = 1;
         private bool isKeyDown = false;
         private bool doRotate = false;
         private bool doAutoRotate = false;
-        private CubeArray[] rotateArray = new CubeArray[9];
+        private bool isBusy = false;
         private Vector3 rotateVector;
-        private const float Angle = 90f;
-        private const float Speed = 0.01f;
         private float curAngle = 0f;
         private bool success = false;
+        private int colorIndex = 0; //0-红；1-绿；2-橙；3-蓝
+        private CFOP cfop = CFOP.None;
+        private bool thirdCrossFinish = false;
+        private bool thirdCornerFinish = false;
+        private bool thirdColorFinish = false;
+        private bool thirdPosFinish = false;
+        private bool thirdCrossPosFinish = false;
+        private bool thirdCornerPosFinish = false;
+
+        private CubeArray[] cubeArray = new CubeArray[27];
+        private CubeArray[] rotateArray = new CubeArray[9];
         private List<Vector3> orderList = new List<Vector3>();
 
         private readonly Vector3[] keyCodes =
@@ -36,10 +55,23 @@ namespace CSharp
             new Vector3(1, 0, 0), //KeyCode.R,
             new Vector3(0, 0, 1), //KeyCode.B,
             new Vector3(-1, 0, 0), //KeyCode.L,
-            new Vector3(0, -1, 0) //KeyCode.D,
+            new Vector3(0, -1, 0), //KeyCode.D,
+
+            //6-9 废弃
+            Vector3.zero,
+            Vector3.zero,
+            Vector3.zero,
+            Vector3.zero,
+
+            new Vector3(0, 1, 0) * 2, //KeyCode.U2,
+            new Vector3(0, 0, -1) * 2, //KeyCode.F2,
+            new Vector3(1, 0, 0) * 2, //KeyCode.R2,
+            new Vector3(0, 0, 1) * 2, //KeyCode.B2,
+            new Vector3(-1, 0, 0) * 2, //KeyCode.L2,
+            new Vector3(0, -1, 0) * 2 //KeyCode.D2,
         };
 
-        private readonly Vector3[] crossCubeList =
+        private readonly Vector3[] firstLayerCrossList =
         {
             new Vector3(0, -1, -1), //红白
             new Vector3(1, -1, 0), //绿白
@@ -47,7 +79,7 @@ namespace CSharp
             new Vector3(-1, -1, 0) //蓝白
         };
 
-        private readonly Vector3[] firstLayerList =
+        private readonly Vector3[] firstLayerCornerList =
         {
             new Vector3(1, -1, -1), //红白绿
             new Vector3(1, -1, 1), //绿白橙
@@ -63,11 +95,47 @@ namespace CSharp
             new Vector3(-1, 0, -1), //蓝红
         };
 
-        private int crossIndex = 0;
-        private CFOP progress = CFOP.None;
+        private readonly Vector3[] thirdLayerCrossList =
+        {
+            new Vector3(0, 1, -1), //红黄
+            new Vector3(1, 1, 0), //绿黄
+            new Vector3(0, 1, 1), //橙黄
+            new Vector3(-1, 1, 0), //蓝黄
+        };
+
+        private readonly Vector3[] thirdLayerCornerList =
+        {
+            new Vector3(1, 1, -1), //红绿黄
+            new Vector3(1, 1, 1), //绿橙黄
+            new Vector3(-1, 1, 1), //橙蓝黄
+            new Vector3(-1, 1, -1), //蓝红黄
+        };
+
+        private void Init()
+        {
+            isKeyDown = false;
+            doRotate = false;
+            doAutoRotate = false;
+            isBusy = false;
+            curAngle = 0f;
+            success = false;
+            colorIndex = 0; //0-红；1-绿；2-橙；3-蓝
+            cfop = CFOP.None;
+            thirdCrossFinish = false;
+            thirdCornerFinish = false;
+            thirdColorFinish = false;
+            thirdPosFinish = false;
+            thirdCrossPosFinish = false;
+            thirdCornerPosFinish = false;
+            orderList.Clear();
+        }
 
         private void Awake()
         {
+            confirm.onClick.AddListener(ConfirmClick);
+            disrupt.onClick.AddListener(DisruptClick);
+            restore.onClick.AddListener(RestoreClick);
+
             var index = 0;
             for (var x = -1; x <= 1; x++)
             {
@@ -106,14 +174,10 @@ namespace CSharp
 
                         var myCube = cubeArray[index].Cube;
                         var pos = new Vector3(x, y, z) * len;
-                        var rotate = myCube.transform.localRotation;
-                        var vector = myCube.transform.localPosition;
-                        var checkPos = Mathf.Abs(vector.x - pos.x) < 10 &&
-                                       Mathf.Abs(vector.y - pos.y) < 10 &&
-                                       Mathf.Abs(vector.z - pos.z) < 10;
-                        var checkRotate = Mathf.Abs(rotate.x) < 10 &&
-                                          Mathf.Abs(rotate.y) < 10 &&
-                                          Mathf.Abs(rotate.z) < 10;
+                        var rotate = ChangeRotate(myCube.transform.localRotation);
+                        var vector = ChangePos(myCube.transform.localPosition);
+                        var checkPos = vector == pos;
+                        var checkRotate = rotate == new Vector3(0, 0, 0);
                         if (!checkPos || !checkRotate)
                         {
                             return false;
@@ -127,7 +191,7 @@ namespace CSharp
             return true;
         }
 
-        IEnumerator RandomRotate(int times)
+        private IEnumerator RandomRotate(int times)
         {
             var rand = new Random();
             for (var i = 1; i <= times; i++)
@@ -137,9 +201,8 @@ namespace CSharp
                     yield break;
                 }
 
-                var vector = keyCodes[rand.Next(0, 5)];
+                var vector = keyCodes[rand.Next(0, 6)];
                 RotationLocal(vector.x, vector.y, vector.z);
-                // yield return 0;
                 yield return new WaitForSeconds(0.02f);
             }
 
@@ -203,9 +266,9 @@ namespace CSharp
                     myCube.Cube.transform.RotateAround(
                         rotateVector * len,
                         new Vector3(
-                            rotateVector.x,
-                            rotateVector.y,
-                            rotateVector.z),
+                            rotateVector.x * direction,
+                            rotateVector.y * direction,
+                            rotateVector.z * direction),
                         angle);
                 }
 
@@ -232,9 +295,9 @@ namespace CSharp
                     myCube.Cube.transform.RotateAround(
                         rotateVector * len,
                         new Vector3(
-                            rotateVector.x,
-                            rotateVector.y,
-                            rotateVector.z),
+                            rotateVector.x * direction,
+                            rotateVector.y * direction,
+                            rotateVector.z * direction),
                         angle);
                 }
 
@@ -250,27 +313,34 @@ namespace CSharp
                     else
                     {
                         isKeyDown = false;
-                        if (progress == CFOP.None)
-                        {
-                            doAutoRotate = false;
-                            return;
-                        }
-                        else if (progress == CFOP.Cross)
-                        {
-                            Cross();
-                        }
-                        else if (progress == CFOP.FirstLayer)
-                        {
-                            FirstLayer();
-                        }
-                        else if (progress == CFOP.SecondLayer)
-                        {
-                            SecondLayer();
-                        }
-                        else if (progress == CFOP.ThirdLayer)
-                        {
-                            ThirdLayer();
-                        }
+                        isBusy = false;
+                    }
+                }
+            }
+
+            if (!isBusy)
+            {
+                if (cfop == CFOP.Cross)
+                {
+                    Cross();
+                }
+                else if (cfop == CFOP.FirstLayer)
+                {
+                    FirstLayer();
+                }
+                else if (cfop == CFOP.SecondLayer)
+                {
+                    SecondLayer();
+                }
+                else if (cfop == CFOP.ThirdLayer)
+                {
+                    if (!thirdColorFinish)
+                    {
+                        ThirdLayerColor();
+                    }
+                    else if (!thirdPosFinish)
+                    {
+                        ThirdLayerPos();
                     }
                 }
             }
@@ -320,22 +390,53 @@ namespace CSharp
 
             if (Input.GetKeyDown(KeyCode.S))
             {
-                isKeyDown = true;
-                success = false;
-                StartCoroutine(RandomRotate(100));
+                DisruptClick();
                 return;
             }
 
             if (Input.GetKeyDown(KeyCode.A))
             {
-                progress = CFOP.Cross;
-                Cross();
+                cfop = CFOP.Cross;
+                return;
             }
+        }
+
+        private void DisruptClick()
+        {
+            Init();
+            StartCoroutine(RandomRotate(50));
+        }
+
+        private void ConfirmClick()
+        {
+            HideDialog();
+        }
+
+        private void RestoreClick()
+        {
+            if (cfop == CFOP.None) cfop = CFOP.Cross;
+        }
+
+        private void ShowDialog()
+        {
+            dialog.localScale = Vector3.one;   
+        }
+
+        private void HideDialog()
+        {
+            dialog.localScale = Vector3.zero;
         }
 
         private int ChangeKey(int key)
         {
-            if (key > 4)
+            //顺时针处理
+            if (key > 4 && key < 8)
+            {
+                return key - 4;
+            }
+
+            //逆时针处理
+            if (key > 14 && key < 18)
             {
                 return key - 4;
             }
@@ -346,15 +447,16 @@ namespace CSharp
         //十字
         private void Cross()
         {
-            if (crossIndex > 3)
+            isBusy = true;
+            if (colorIndex > 3)
             {
-                crossIndex = 0;
-                progress = CFOP.FirstLayer;
-                FirstLayer();
+                colorIndex = 0;
+                cfop = CFOP.FirstLayer;
+                isBusy = false;
                 return;
             }
 
-            var curCube = crossCubeList[crossIndex];
+            var curCube = firstLayerCrossList[colorIndex];
             for (var i = 0; i <= 26; i++)
             {
                 var myCube = cubeArray[i].Cube;
@@ -364,108 +466,94 @@ namespace CSharp
                 {
                     if (curPos == pos) //前下
                     {
-                        if (ChangeRotate(myCube.transform.rotation) != new Vector3(0, 0, 0))
+                        if (ChangeRotate(myCube.transform.localRotation) != new Vector3(0, 0, 0))
                         {
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                             orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                         }
                         else
                         {
-                            crossIndex++;
-                            Cross();
+                            colorIndex++;
+                            isBusy = false;
                             return;
                         }
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, -1, 0))) //左下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, -1, 0))) //右下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(0, -1, 1))) //后下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 0, -1))) //中左前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 0, 1))) //中左后
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L2 + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 0, -1))) //中右前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 0, 1))) //中右后
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(0, 1, -1))) //上前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(0, 1, 1))) //上后
                     {
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 1, 0))) //上左
                     {
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 1, 0))) //上右
                     {
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                     }
 
                     StartAutoRotate();
@@ -477,15 +565,16 @@ namespace CSharp
         //底层
         private void FirstLayer()
         {
-            if (crossIndex > 3)
+            isBusy = true;
+            if (colorIndex > 3)
             {
-                crossIndex = 0;
-                progress = CFOP.SecondLayer;
-                SecondLayer();
+                colorIndex = 0;
+                cfop = CFOP.SecondLayer;
+                isBusy = false;
                 return;
             }
 
-            var curCube = firstLayerList[crossIndex];
+            var curCube = firstLayerCornerList[colorIndex];
             for (var i = 0; i <= 26; i++)
             {
                 var myCube = cubeArray[i].Cube;
@@ -495,112 +584,80 @@ namespace CSharp
                 {
                     if (curPos == pos) //右下前
                     {
-                        if (ChangeRotate(myCube.transform.rotation) != new Vector3(0, 0, 0))
+                        if (ChangeRotate(myCube.transform.localRotation) != new Vector3(0, 0, 0))
                         {
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                            orderList.Add(keyCodes[(int) RotateKey.U2]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                             orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[(int) RotateKey.U]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                            orderList.Add(keyCodes[(int) RotateKey.U2]);
+                            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                         }
                         else
                         {
-                            crossIndex++;
-                            FirstLayer();
+                            colorIndex++;
+                            isBusy = false;
                             return;
                         }
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, -1, -1))) //左前下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, -1, 1))) //左后下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B2 + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
 
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, -1, 1))) //右后下
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B2 + colorIndex)]);
 
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 1, -1))) //左上前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 1, 1))) //左上后
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 1, 1))) //右上后
                     {
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 1, -1))) //右上前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                     }
 
                     StartAutoRotate();
@@ -612,25 +669,16 @@ namespace CSharp
         //中层
         private void SecondLayer()
         {
-            if (crossIndex > 3)
+            isBusy = true;
+            if (colorIndex > 3)
             {
-                crossIndex = 0;
-                progress = CFOP.ThirdLayer;
-                ThirdLayerExp1();
-                orderList.Add(keyCodes[(int) RotateKey.U]);
-                ThirdLayerExp1();
-                orderList.Add(keyCodes[(int) RotateKey.U]);
-                ThirdLayerExp1();
-                orderList.Add(keyCodes[(int) RotateKey.U]);
-                ThirdLayerExp1();
-                orderList.Add(keyCodes[(int) RotateKey.U]);
-                ThirdLayerExp1();
-                orderList.Add(keyCodes[(int) RotateKey.U]);
-                StartAutoRotate();
+                colorIndex = 0;
+                cfop = CFOP.ThirdLayer;
+                isBusy = false;
                 return;
             }
 
-            var curCube = secondLayerList[crossIndex];
+            var curCube = secondLayerList[colorIndex];
             for (var i = 0; i <= 26; i++)
             {
                 var myCube = cubeArray[i].Cube;
@@ -640,7 +688,7 @@ namespace CSharp
                 {
                     if (curPos == pos) //中右前
                     {
-                        if (ChangeRotate(myCube.transform.rotation) != new Vector3(0, 0, 0))
+                        if (ChangeRotate(myCube.transform.localRotation) != new Vector3(0, 0, 0))
                         {
                             SecondLayerExp1();
                             orderList.Add(keyCodes[(int) RotateKey.U]);
@@ -649,66 +697,42 @@ namespace CSharp
                         }
                         else
                         {
-                            crossIndex++;
-                            SecondLayer();
+                            colorIndex++;
+                            isBusy = false;
                             return;
                         }
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 0, -1))) //中左前
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L2 + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + colorIndex)]);
                         SecondLayerExp2();
                     }
                     else if (curPos == ChangeAngle(new Vector3(-1, 0, 1))) //中左后
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L2 + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B2 + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
                         SecondLayerExp1();
                     }
                     else if (curPos == ChangeAngle(new Vector3(1, 0, 1))) //中右后
                     {
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B2 + colorIndex)]);
+                        orderList.Add(keyCodes[(int) RotateKey.U2]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-                        orderList.Add(keyCodes[(int) RotateKey.U]);
-                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
+                        orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         orderList.Add(keyCodes[(int) RotateKey.U]);
                         SecondLayerExp2();
@@ -739,65 +763,179 @@ namespace CSharp
             }
         }
 
-        private void SecondLayerExp1()
-        {
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-        }
-
-        private void SecondLayerExp2()
-        {
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-        }
-        private void ThirdLayerExp1()
-        {
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + crossIndex)]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[(int) RotateKey.U]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + crossIndex)]);
-        }
-
         //顶层
-        private void ThirdLayer()
+        private void ThirdLayerColor()
         {
-             
+            isBusy = true;
+
+            void Cb()
+            {
+                StartCoroutine(ThirdLayerCornerChecker(() =>
+                {
+                    thirdColorFinish = true;
+                    colorIndex = 0;
+                    isBusy = false;
+                }));
+            }
+
+            StartCoroutine(ThirdLayerCrossChecker(Cb));
+        }
+
+        private void ThirdLayerPos()
+        {
+            isBusy = true;
+            if (!thirdCrossPosFinish)
+            {
+                if (colorIndex == 3)
+                {
+                    thirdCrossPosFinish = true;
+                    colorIndex = 0;
+                    isBusy = false;
+                    return;
+                }
+
+                ThirdLayerCrossPos();
+            }
+            else if (!thirdCornerPosFinish)
+            {
+                ThirdLayerCornerPos();
+            }
+        }
+
+        private void ThirdLayerCrossPos()
+        {
+            for (var i = 0; i <= 26; i++)
+            {
+                var myCube = cubeArray[i].Cube;
+                var pos = cubeArray[i].Pos;
+                var curPos = ChangePos(myCube.transform.localPosition);
+
+                if (pos == thirdLayerCrossList[colorIndex])
+                {
+                    if (curPos != pos)
+                    {
+                        if (colorIndex == 0)
+                        {
+                            orderList.Add(keyCodes[(int) RotateKey.U]);
+                        }
+                        else if (colorIndex == 1)
+                        {
+                            ThirdLayerExp3(2);
+                        }
+                        else if (colorIndex == 2)
+                        {
+                            ThirdLayerExp4(2);
+                        }
+
+                        break;
+                    }
+
+                    colorIndex++;
+                    isBusy = false;
+                    return;
+                }
+            }
+
+            StartAutoRotate();
+        }
+
+        private void ThirdLayerCornerPos()
+        {
+            var correctIndex = 0;
+            var thirdCornerCount = 0;
+            for (var i = 0; i <= 26; i++)
+            {
+                var myCube = cubeArray[i].Cube;
+                var pos = cubeArray[i].Pos;
+                var curPos = ChangePos(myCube.transform.localPosition);
+                for (var j = 0; j <= 3; j++)
+                {
+                    var curCube = thirdLayerCornerList[j];
+                    if (curPos == curCube && curPos == pos)
+                    {
+                        correctIndex = j;
+                        thirdCornerCount++;
+                        break;
+                    }
+                }
+            }
+
+            if (thirdCornerCount == 0)
+            {
+                ThirdLayerExp5(0);
+            }
+            else if (thirdCornerCount == 1)
+            {
+                var index = (correctIndex + 2) % 4;
+                ThirdLayerExp5(index);
+            }
+            else if (thirdCornerCount == 4)
+            {
+                Complete();
+                return;
+            }
+
+            StartAutoRotate();
+        }
+
+        private void Complete()
+        {
+            // doAutoRotate = false;
+            cfop = CFOP.None;
+            isBusy = false;
+            thirdPosFinish = true;
+            thirdCornerPosFinish = true;
+            ShowDialog();
+        }
+
+        private bool CheckThirdCross()
+        {
+            for (var i = 0; i <= 26; i++)
+            {
+                var myCube = cubeArray[i].Cube;
+                var pos = cubeArray[i].Pos;
+                var rotate = ChangeRotate(myCube.transform.localRotation);
+                for (var j = 0; j <= 3; j++)
+                {
+                    var curCube = thirdLayerCrossList[j];
+                    if (pos == curCube)
+                    {
+                        if (rotate.x == 0 && rotate.z == 0)
+                        {
+                            break;
+                        }
+
+                        return false;
+                    }
+                }
+            }
+
+            thirdCrossFinish = true;
+            return true;
+        }
+
+        private bool CheckThirdCorner()
+        {
+            for (var i = 0; i <= 26; i++)
+            {
+                var myCube = cubeArray[i].Cube;
+                var rotate = ChangeRotate(myCube.transform.localRotation);
+                var curPos = ChangePos(myCube.transform.localPosition);
+                for (var j = 0; j <= 3; j++)
+                {
+                    if (curPos == new Vector3(1, 1, -1))
+                    {
+                        if (rotate.x == 0 && rotate.z == 0)
+                        {
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private void StartAutoRotate()
@@ -808,9 +946,19 @@ namespace CSharp
 
         private void AutoRotation(Vector3 vector)
         {
-            var x = vector.x;
-            var y = vector.y;
-            var z = vector.z;
+            direction = 1;
+            var x = Convert.ToInt32(vector.x);
+            var y = Convert.ToInt32(vector.y);
+            var z = Convert.ToInt32(vector.z);
+            if (Mathf.Abs(x) == 2 || Mathf.Abs(y) == 2 || Mathf.Abs(z) == 2)
+            {
+                direction = -1;
+                vector /= 2;
+                x /= 2;
+                y /= 2;
+                z /= 2;
+            }
+
             var index = 0;
             for (var i = 0; i <= 26; i++)
             {
@@ -824,8 +972,55 @@ namespace CSharp
                 }
             }
 
-            rotateVector = vector;
+            rotateVector = new Vector3(x, y, z);
             doAutoRotate = true;
+        }
+
+        private IEnumerator ThirdLayerCrossChecker(Action cb)
+        {
+            while (!thirdCrossFinish)
+            {
+                yield return new WaitForSeconds(0.1f);
+                if (isKeyDown || CheckThirdCross()) continue;
+
+                for (var i = 0; i <= new Random().Next(0, 2); i++)
+                {
+                    orderList.Add(keyCodes[(int) RotateKey.U]);
+                }
+
+                ThirdLayerExp1();
+                StartAutoRotate();
+            }
+
+            cb();
+        }
+
+        private IEnumerator ThirdLayerCornerChecker(Action cb)
+        {
+            while (!thirdCornerFinish)
+            {
+                yield return new WaitForSeconds(0.1f);
+                if (isKeyDown) continue;
+
+                if (!CheckThirdCorner())
+                {
+                    ThirdLayerExp2();
+                }
+                else
+                {
+                    colorIndex++;
+                    if (colorIndex == 4)
+                    {
+                        thirdCornerFinish = true;
+                    }
+
+                    orderList.Add(keyCodes[(int) RotateKey.U]);
+                }
+
+                StartAutoRotate();
+            }
+
+            cb();
         }
 
         private Vector3 ChangePos(Vector3 position)
@@ -851,7 +1046,7 @@ namespace CSharp
         private Vector3 ChangeAngle(Vector3 vector)
         {
             var result = new Vector3();
-            var angles = crossIndex * Angle * Mathf.PI / 180;
+            var angles = colorIndex * Angle * Mathf.PI / 180;
             // x1 = x0*cosB - y0*sinB
             // y1 = y0*cosB + x0*sinB
             result.x = Convert.ToInt32(vector.x * Mathf.Cos(angles) - vector.z * Mathf.Sin(angles));
@@ -859,6 +1054,97 @@ namespace CSharp
             result.z = Convert.ToInt32(vector.z * Mathf.Cos(angles) + vector.x * Mathf.Sin(angles));
 
             return result;
+        }
+
+        private void SecondLayerExp1()
+        {
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+        }
+
+        private void SecondLayerExp2()
+        {
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F2 + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + colorIndex)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + colorIndex)]);
+        }
+
+        private void ThirdLayerExp1()
+        {
+            orderList.Add(keyCodes[(int) RotateKey.F]);
+            orderList.Add(keyCodes[(int) RotateKey.R]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[(int) RotateKey.R2]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[(int) RotateKey.F2]);
+        }
+
+        private void ThirdLayerExp2()
+        {
+            orderList.Add(keyCodes[(int) RotateKey.R2]);
+            orderList.Add(keyCodes[(int) RotateKey.D2]);
+            orderList.Add(keyCodes[(int) RotateKey.R]);
+            orderList.Add(keyCodes[(int) RotateKey.D]);
+        }
+
+        private void ThirdLayerExp3(int index)
+        {
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+        }
+
+        private void ThirdLayerExp4(int index)
+        {
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.L2 + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + index)]);
+            orderList.Add(keyCodes[(int) RotateKey.U2]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.L + index)]);
+        }
+
+        private void ThirdLayerExp5(int index)
+        {
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.B2 + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R2 + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.B + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.F + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
+            orderList.Add(keyCodes[ChangeKey((int) RotateKey.R + index)]);
         }
     }
 }

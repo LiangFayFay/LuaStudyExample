@@ -32,7 +32,7 @@ namespace CSharp
 
         Mesh MakeCube(float fSize)
         {
-            float fHS = (fSize / 2.0f) * 0.98f;
+            float fHS = (fSize / 2.0f) * 0.97f;
             Mesh mesh = new Mesh();
             mesh.vertices = new Vector3[] {
                 new Vector3(-fHS,  fHS,  fHS), new Vector3( fHS,  fHS,  fHS), new Vector3( fHS,  fHS, -fHS), new Vector3(-fHS,  fHS, -fHS),  // Top
