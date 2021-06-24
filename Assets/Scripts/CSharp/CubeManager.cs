@@ -26,23 +26,23 @@ namespace CSharp
         private const float Angle = 90f;
         private const float Speed = 0.02f;
 
-        private int len = 0;
-        private int direction = 1;
-        private bool isKeyDown = false;
-        private bool doRotate = false;
-        private bool doAutoRotate = false;
-        private bool isBusy = false;
+        private int len;
+        private int direction;
+        private bool isKeyDown;
+        private bool doRotate;
+        private bool doAutoRotate;
+        private bool isBusy;
         private Vector3 rotateVector;
-        private float curAngle = 0f;
-        private bool success = false;
-        private int colorIndex = 0; //0-红；1-绿；2-橙；3-蓝
-        private CFOP cfop = CFOP.None;
-        private bool thirdCrossFinish = false;
-        private bool thirdCornerFinish = false;
-        private bool thirdColorFinish = false;
-        private bool thirdPosFinish = false;
-        private bool thirdCrossPosFinish = false;
-        private bool thirdCornerPosFinish = false;
+        private float curAngle;
+        private bool success;
+        private int colorIndex; //0-红；1-绿；2-橙；3-蓝
+        private CFOP cfop; //整体进度
+        private bool thirdCrossFinish;
+        private bool thirdCornerFinish;
+        private bool thirdColorFinish;
+        private bool thirdPosFinish;
+        private bool thirdCrossPosFinish;
+        private bool thirdCornerPosFinish;
 
         private CubeArray[] cubeArray = new CubeArray[27];
         private CubeArray[] rotateArray = new CubeArray[9];
@@ -50,12 +50,12 @@ namespace CSharp
 
         private readonly Vector3[] keyCodes =
         {
-            new Vector3(0, 1, 0), //KeyCode.U,
-            new Vector3(0, 0, -1), //KeyCode.F,
-            new Vector3(1, 0, 0), //KeyCode.R,
-            new Vector3(0, 0, 1), //KeyCode.B,
-            new Vector3(-1, 0, 0), //KeyCode.L,
-            new Vector3(0, -1, 0), //KeyCode.D,
+            new Vector3(0, 1, 0),     //KeyCode.U,
+            new Vector3(0, 0, -1),    //KeyCode.F,
+            new Vector3(1, 0, 0),     //KeyCode.R,
+            new Vector3(0, 0, 1),     //KeyCode.B,
+            new Vector3(-1, 0, 0),    //KeyCode.L,
+            new Vector3(0, -1, 0),    //KeyCode.D,
 
             //6-9 废弃
             Vector3.zero,
@@ -63,52 +63,52 @@ namespace CSharp
             Vector3.zero,
             Vector3.zero,
 
-            new Vector3(0, 1, 0) * 2, //KeyCode.U2,
-            new Vector3(0, 0, -1) * 2, //KeyCode.F2,
-            new Vector3(1, 0, 0) * 2, //KeyCode.R2,
-            new Vector3(0, 0, 1) * 2, //KeyCode.B2,
-            new Vector3(-1, 0, 0) * 2, //KeyCode.L2,
-            new Vector3(0, -1, 0) * 2 //KeyCode.D2,
+            new Vector3(0, 1, 0) * 2,     //KeyCode.U2,
+            new Vector3(0, 0, -1) * 2,    //KeyCode.F2,
+            new Vector3(1, 0, 0) * 2,     //KeyCode.R2,
+            new Vector3(0, 0, 1) * 2,     //KeyCode.B2,
+            new Vector3(-1, 0, 0) * 2,    //KeyCode.L2,
+            new Vector3(0, -1, 0) * 2     //KeyCode.D2,
         };
 
         private readonly Vector3[] firstLayerCrossList =
         {
-            new Vector3(0, -1, -1), //红白
-            new Vector3(1, -1, 0), //绿白
-            new Vector3(0, -1, 1), //橙白
-            new Vector3(-1, -1, 0) //蓝白
+            new Vector3(0, -1, -1),     //红白
+            new Vector3(1, -1, 0),      //绿白
+            new Vector3(0, -1, 1),      //橙白
+            new Vector3(-1, -1, 0)      //蓝白
         };
 
         private readonly Vector3[] firstLayerCornerList =
         {
-            new Vector3(1, -1, -1), //红白绿
-            new Vector3(1, -1, 1), //绿白橙
-            new Vector3(-1, -1, 1), //橙白蓝
-            new Vector3(-1, -1, -1), //蓝白红
+            new Vector3(1, -1, -1),     //红白绿
+            new Vector3(1, -1, 1),      //绿白橙
+            new Vector3(-1, -1, 1),     //橙白蓝
+            new Vector3(-1, -1, -1),    //蓝白红
         };
 
         private readonly Vector3[] secondLayerList =
         {
-            new Vector3(1, 0, -1), //红绿
-            new Vector3(1, 0, 1), //绿橙
-            new Vector3(-1, 0, 1), //橙蓝
-            new Vector3(-1, 0, -1), //蓝红
+            new Vector3(1, 0, -1),     //红绿
+            new Vector3(1, 0, 1),      //绿橙
+            new Vector3(-1, 0, 1),     //橙蓝
+            new Vector3(-1, 0, -1),    //蓝红
         };
 
         private readonly Vector3[] thirdLayerCrossList =
         {
-            new Vector3(0, 1, -1), //红黄
-            new Vector3(1, 1, 0), //绿黄
-            new Vector3(0, 1, 1), //橙黄
-            new Vector3(-1, 1, 0), //蓝黄
+            new Vector3(0, 1, -1),     //红黄
+            new Vector3(1, 1, 0),      //绿黄
+            new Vector3(0, 1, 1),      //橙黄
+            new Vector3(-1, 1, 0),     //蓝黄
         };
 
         private readonly Vector3[] thirdLayerCornerList =
         {
-            new Vector3(1, 1, -1), //红绿黄
-            new Vector3(1, 1, 1), //绿橙黄
-            new Vector3(-1, 1, 1), //橙蓝黄
-            new Vector3(-1, 1, -1), //蓝红黄
+            new Vector3(1, 1, -1),     //红绿黄
+            new Vector3(1, 1, 1),      //绿橙黄
+            new Vector3(-1, 1, 1),     //橙蓝黄
+            new Vector3(-1, 1, -1),    //蓝红黄
         };
 
         private void Init()
@@ -119,6 +119,7 @@ namespace CSharp
             isBusy = false;
             curAngle = 0f;
             success = false;
+            direction = 1;
             colorIndex = 0; //0-红；1-绿；2-橙；3-蓝
             cfop = CFOP.None;
             thirdCrossFinish = false;
@@ -136,6 +137,13 @@ namespace CSharp
             disrupt.onClick.AddListener(DisruptClick);
             restore.onClick.AddListener(RestoreClick);
 
+            Init();
+            CreateCube();
+        }
+
+        // 创建魔方
+        private void CreateCube()
+        {
             var index = 0;
             for (var x = -1; x <= 1; x++)
             {
@@ -214,9 +222,9 @@ namespace CSharp
             for (var i = 0; i <= 26; i++)
             {
                 var myCube = cubeArray[i];
-                if ((Mathf.Abs(x) > 0 && Math.Abs(myCube.Cube.transform.localPosition.x * x - len) < 10f) ||
-                    (Mathf.Abs(y) > 0 && Math.Abs(myCube.Cube.transform.localPosition.y * y - len) < 10f) ||
-                    (Mathf.Abs(z) > 0 && Math.Abs(myCube.Cube.transform.localPosition.z * z - len) < 10f))
+                if (Mathf.Abs(x) > 0 && Math.Abs(myCube.Cube.transform.localPosition.x * x - len) < 10f ||
+                    Mathf.Abs(y) > 0 && Math.Abs(myCube.Cube.transform.localPosition.y * y - len) < 10f ||
+                    Mathf.Abs(z) > 0 && Math.Abs(myCube.Cube.transform.localPosition.z * z - len) < 10f)
                 {
                     myCube.Cube.transform.RotateAround(
                         new Vector3(x, y, z) * len,
@@ -225,6 +233,8 @@ namespace CSharp
                     if (CheckSuccess())
                     {
                         success = true;
+                        ShowDialog();
+                        return;
                     }
                 }
             }
@@ -236,9 +246,9 @@ namespace CSharp
             for (var i = 0; i <= 26; i++)
             {
                 var myCube = cubeArray[i];
-                if ((Mathf.Abs(x) > 0 && Math.Abs(myCube.Cube.transform.localPosition.x * x - len) < 10f) ||
-                    (Mathf.Abs(y) > 0 && Math.Abs(myCube.Cube.transform.localPosition.y * y - len) < 10f) ||
-                    (Mathf.Abs(z) > 0 && Math.Abs(myCube.Cube.transform.localPosition.z * z - len) < 10f))
+                if (Mathf.Abs(x) > 0 && Math.Abs(myCube.Cube.transform.localPosition.x * x - len) < 10f ||
+                    Mathf.Abs(y) > 0 && Math.Abs(myCube.Cube.transform.localPosition.y * y - len) < 10f ||
+                    Mathf.Abs(z) > 0 && Math.Abs(myCube.Cube.transform.localPosition.z * z - len) < 10f)
                 {
                     rotateArray[index] = myCube;
                     index++;
@@ -251,7 +261,7 @@ namespace CSharp
 
         private void Update()
         {
-            if (doRotate)
+            if (doRotate) // 手动模式
             {
                 var angle = (Angle / Speed) * Time.deltaTime;
                 curAngle += angle;
@@ -280,7 +290,7 @@ namespace CSharp
                 }
             }
 
-            if (doAutoRotate)
+            if (doAutoRotate) // 自动模式
             {
                 var angle = (Angle / Speed) * Time.deltaTime;
                 curAngle += angle;
@@ -320,27 +330,27 @@ namespace CSharp
 
             if (!isBusy)
             {
-                if (cfop == CFOP.Cross)
+                if (cfop == CFOP.Cross) // 底层十字
                 {
                     Cross();
                 }
-                else if (cfop == CFOP.FirstLayer)
+                else if (cfop == CFOP.FirstLayer) // 第一层
                 {
                     FirstLayer();
                 }
-                else if (cfop == CFOP.SecondLayer)
+                else if (cfop == CFOP.SecondLayer) // 第二层
                 {
                     SecondLayer();
                 }
-                else if (cfop == CFOP.ThirdLayer)
+                else if (cfop == CFOP.ThirdLayer) // 第三层
                 {
                     if (!thirdColorFinish)
                     {
-                        ThirdLayerColor();
+                        ThirdLayerColor(); // 顶层十字 + 颜色
                     }
                     else if (!thirdPosFinish)
                     {
-                        ThirdLayerPos();
+                        ThirdLayerPos(); // 顶层位置调整
                     }
                 }
             }
@@ -396,8 +406,7 @@ namespace CSharp
 
             if (Input.GetKeyDown(KeyCode.A))
             {
-                cfop = CFOP.Cross;
-                return;
+                RestoreClick();
             }
         }
 
@@ -419,7 +428,7 @@ namespace CSharp
 
         private void ShowDialog()
         {
-            dialog.localScale = Vector3.one;   
+            dialog.localScale = Vector3.one;
         }
 
         private void HideDialog()
@@ -802,6 +811,7 @@ namespace CSharp
             }
         }
 
+        //顶层十字
         private void ThirdLayerCrossPos()
         {
             for (var i = 0; i <= 26; i++)
@@ -839,6 +849,7 @@ namespace CSharp
             StartAutoRotate();
         }
 
+        //顶层角块
         private void ThirdLayerCornerPos()
         {
             var correctIndex = 0;
@@ -880,7 +891,6 @@ namespace CSharp
 
         private void Complete()
         {
-            // doAutoRotate = false;
             cfop = CFOP.None;
             isBusy = false;
             thirdPosFinish = true;
