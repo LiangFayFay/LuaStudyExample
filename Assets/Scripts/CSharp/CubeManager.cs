@@ -1,14 +1,13 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics.Eventing.Reader;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = System.Random;
 
 namespace CSharp
 {
-    class CubeArray
+    internal class CubeArray
     {
         public GameObject Cube;
         public Vector3 Pos;
@@ -156,8 +155,6 @@ namespace CSharp
                         var pos = new Vector3(x, y, z) * len;
                         newCube.transform.localPosition = pos;
                         newCube.SetActive(true);
-                        newCube.GetComponent<Cube>().Position = new Vector3(x, y, z);
-                        newCube.GetComponent<Cube>().Rotate = new Vector3(0, 0, 0);
                         cubeArray[index] = new CubeArray {Cube = newCube, Pos = new Vector3(x, y, z)};
                         index++;
                     }

@@ -1,6 +1,6 @@
 namespace CSharp
 {
-    enum CFOP
+    internal enum CFOP
     {
         None = -1,
         Cross = 0,

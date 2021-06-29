@@ -2,6 +2,7 @@ namespace CSharp
 {
     public enum RotateKey
     {
+        //顺时针
         U = 0,
         F = 1,
         R = 2,
@@ -9,6 +10,7 @@ namespace CSharp
         L = 4,
         D = 5,
         
+        //逆时针
         U2 = 10,
         F2 = 11,
         R2 = 12,
