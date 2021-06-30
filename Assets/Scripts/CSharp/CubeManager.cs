@@ -27,6 +27,7 @@ namespace CSharp
 
         private int len;
         private int direction;
+        private int steps;
         private bool isKeyDown;
         private bool doRotate;
         private bool doAutoRotate;
@@ -42,19 +43,37 @@ namespace CSharp
         private bool thirdPosFinish;
         private bool thirdCrossPosFinish;
         private bool thirdCornerPosFinish;
+        private bool simulateFinish;
 
         private CubeArray[] cubeArray = new CubeArray[27];
         private CubeArray[] rotateArray = new CubeArray[9];
         private List<Vector3> orderList = new List<Vector3>();
+        private List<Cube> virtualCubeList = new List<Cube>();
+
+        private readonly RotateKey[] rotateKeys =
+        {
+            RotateKey.U,
+            RotateKey.U2,
+            RotateKey.F,
+            RotateKey.F2,
+            RotateKey.R,
+            RotateKey.R2,
+            RotateKey.B,
+            RotateKey.B2,
+            RotateKey.L,
+            RotateKey.L2,
+            RotateKey.D,
+            RotateKey.D2,
+        };
 
         private readonly Vector3[] keyCodes =
         {
-            new Vector3(0, 1, 0),     //KeyCode.U,
-            new Vector3(0, 0, -1),    //KeyCode.F,
-            new Vector3(1, 0, 0),     //KeyCode.R,
-            new Vector3(0, 0, 1),     //KeyCode.B,
-            new Vector3(-1, 0, 0),    //KeyCode.L,
-            new Vector3(0, -1, 0),    //KeyCode.D,
+            new Vector3(0, 1, 0), //KeyCode.U,
+            new Vector3(0, 0, -1), //KeyCode.F,
+            new Vector3(1, 0, 0), //KeyCode.R,
+            new Vector3(0, 0, 1), //KeyCode.B,
+            new Vector3(-1, 0, 0), //KeyCode.L,
+            new Vector3(0, -1, 0), //KeyCode.D,
 
             //6-9 废弃
             Vector3.zero,
@@ -62,56 +81,57 @@ namespace CSharp
             Vector3.zero,
             Vector3.zero,
 
-            new Vector3(0, 1, 0) * 2,     //KeyCode.U2,
-            new Vector3(0, 0, -1) * 2,    //KeyCode.F2,
-            new Vector3(1, 0, 0) * 2,     //KeyCode.R2,
-            new Vector3(0, 0, 1) * 2,     //KeyCode.B2,
-            new Vector3(-1, 0, 0) * 2,    //KeyCode.L2,
-            new Vector3(0, -1, 0) * 2     //KeyCode.D2,
+            new Vector3(0, 1, 0) * 2, //KeyCode.U2,
+            new Vector3(0, 0, -1) * 2, //KeyCode.F2,
+            new Vector3(1, 0, 0) * 2, //KeyCode.R2,
+            new Vector3(0, 0, 1) * 2, //KeyCode.B2,
+            new Vector3(-1, 0, 0) * 2, //KeyCode.L2,
+            new Vector3(0, -1, 0) * 2 //KeyCode.D2,
         };
 
         private readonly Vector3[] firstLayerCrossList =
         {
-            new Vector3(0, -1, -1),     //红白
-            new Vector3(1, -1, 0),      //绿白
-            new Vector3(0, -1, 1),      //橙白
-            new Vector3(-1, -1, 0)      //蓝白
+            new Vector3(0, -1, -1), //红白
+            new Vector3(1, -1, 0), //绿白
+            new Vector3(0, -1, 1), //橙白
+            new Vector3(-1, -1, 0) //蓝白
         };
 
         private readonly Vector3[] firstLayerCornerList =
         {
-            new Vector3(1, -1, -1),     //红白绿
-            new Vector3(1, -1, 1),      //绿白橙
-            new Vector3(-1, -1, 1),     //橙白蓝
-            new Vector3(-1, -1, -1),    //蓝白红
+            new Vector3(1, -1, -1), //红白绿
+            new Vector3(1, -1, 1), //绿白橙
+            new Vector3(-1, -1, 1), //橙白蓝
+            new Vector3(-1, -1, -1), //蓝白红
         };
 
         private readonly Vector3[] secondLayerList =
         {
-            new Vector3(1, 0, -1),     //红绿
-            new Vector3(1, 0, 1),      //绿橙
-            new Vector3(-1, 0, 1),     //橙蓝
-            new Vector3(-1, 0, -1),    //蓝红
+            new Vector3(1, 0, -1), //红绿
+            new Vector3(1, 0, 1), //绿橙
+            new Vector3(-1, 0, 1), //橙蓝
+            new Vector3(-1, 0, -1), //蓝红
         };
 
         private readonly Vector3[] thirdLayerCrossList =
         {
-            new Vector3(0, 1, -1),     //红黄
-            new Vector3(1, 1, 0),      //绿黄
-            new Vector3(0, 1, 1),      //橙黄
-            new Vector3(-1, 1, 0),     //蓝黄
+            new Vector3(0, 1, -1), //红黄
+            new Vector3(1, 1, 0), //绿黄
+            new Vector3(0, 1, 1), //橙黄
+            new Vector3(-1, 1, 0), //蓝黄
         };
 
         private readonly Vector3[] thirdLayerCornerList =
         {
-            new Vector3(1, 1, -1),     //红绿黄
-            new Vector3(1, 1, 1),      //绿橙黄
-            new Vector3(-1, 1, 1),     //橙蓝黄
-            new Vector3(-1, 1, -1),    //蓝红黄
+            new Vector3(1, 1, -1), //红绿黄
+            new Vector3(1, 1, 1), //绿橙黄
+            new Vector3(-1, 1, 1), //橙蓝黄
+            new Vector3(-1, 1, -1), //蓝红黄
         };
 
         private void Init()
         {
+            steps = 0;
             isKeyDown = false;
             doRotate = false;
             doAutoRotate = false;
@@ -127,6 +147,7 @@ namespace CSharp
             thirdPosFinish = false;
             thirdCrossPosFinish = false;
             thirdCornerPosFinish = false;
+            simulateFinish = false;
             orderList.Clear();
         }
 
@@ -144,6 +165,7 @@ namespace CSharp
         private void CreateCube()
         {
             var index = 0;
+            var virtualCube = new Cube();
             for (var x = -1; x <= 1; x++)
             {
                 for (var y = -1; y <= 1; y++)
@@ -152,14 +174,23 @@ namespace CSharp
                     {
                         var newCube = Instantiate(cube, trans);
                         len = (int) cube.transform.localScale.x;
-                        var pos = new Vector3(x, y, z) * len;
-                        newCube.transform.localPosition = pos;
+                        var virtualPos = new Vector3(x, y, z);
+                        newCube.transform.localPosition = virtualPos * len;
                         newCube.SetActive(true);
-                        cubeArray[index] = new CubeArray {Cube = newCube, Pos = new Vector3(x, y, z)};
+                        cubeArray[index] = new CubeArray {Cube = newCube, Pos = virtualPos};
+                        virtualCube.Blocks[index] = new Block
+                        {
+                            InitPos = virtualPos,
+                            Position = virtualPos,
+                            Rotate = new Vector3(0, 0, 0)
+                        };
+
                         index++;
                     }
                 }
             }
+
+            virtualCubeList.Add(virtualCube);
         }
 
         private bool CheckSuccess()
@@ -178,7 +209,7 @@ namespace CSharp
                         }
 
                         var myCube = cubeArray[index].Cube;
-                        var pos = new Vector3(x, y, z) * len;
+                        var pos = new Vector3(x, y, z);
                         var rotate = ChangeRotate(myCube.transform.localRotation);
                         var vector = ChangePos(myCube.transform.localPosition);
                         var checkPos = vector == pos;
@@ -207,7 +238,21 @@ namespace CSharp
                 }
 
                 var vector = keyCodes[rand.Next(0, 6)];
+                var dir = rand.Next(-1, 1);
+                if (dir < 0)
+                {
+                    //todo
+                    direction = 1;
+                }
+                else
+                {
+                    direction = 1;
+                }
+
                 RotationLocal(vector.x, vector.y, vector.z);
+                virtualCubeList[0].DoRotate(vector);
+                // steps++;
+
                 yield return new WaitForSeconds(0.02f);
             }
 
@@ -225,20 +270,21 @@ namespace CSharp
                 {
                     myCube.Cube.transform.RotateAround(
                         new Vector3(x, y, z) * len,
-                        new Vector3(x, y, z),
+                        new Vector3(x, y, z) * direction,
                         90f);
-                    if (CheckSuccess())
-                    {
-                        success = true;
-                        ShowDialog();
-                        return;
-                    }
                 }
+            }
+
+            if (CheckSuccess())
+            {
+                success = true;
+                ShowDialog();
             }
         }
 
         private void Rotation(float x, float y, float z)
         {
+            virtualCubeList[0].DoRotate(new Vector3(x, y, z));
             var index = 0;
             for (var i = 0; i <= 26; i++)
             {
@@ -405,6 +451,73 @@ namespace CSharp
             {
                 RestoreClick();
             }
+
+            if (Input.GetKeyDown(KeyCode.Z))
+            {
+                // StartCoroutine(StartSimulate());
+                StartSimulate();
+            }
+        }
+
+        // private IEnumerator StartSimulate()
+        private void StartSimulate()
+        {
+            virtualCubeList[0].StepList.Clear();
+            try
+            {
+                while (!simulateFinish)
+                {
+                    var count = virtualCubeList.Count;
+                    for (var i = 0; i < count; i++)
+                    {
+                        var curCube = virtualCubeList[0];
+                        var lastKey = Vector3.zero;
+                        if (curCube.StepList.Count > 0) lastKey = curCube.StepList[curCube.StepList.Count - 1];
+                        foreach (var key in keyCodes)
+                        {
+                            if (CheckStepNext(key, lastKey)) continue;
+                            var newCube = curCube.Clone();
+                            simulateFinish = newCube.DoRotate(key);
+                            if (simulateFinish)
+                            {
+                                print(virtualCubeList.Count);
+                                orderList = newCube.StepList;
+
+                                StartAutoRotate();
+                                // yield break;
+                                return;
+                            }
+
+                            virtualCubeList.Add(newCube);
+                        }
+
+                        virtualCubeList.RemoveAt(0);
+
+                        // yield return new WaitForSeconds(0.0001f);
+                    }
+
+                    Debug.LogError(++steps);
+                    Debug.LogError(virtualCubeList.Count);
+                    // yield return new WaitForSeconds(0.5f);
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+        }
+
+        private bool CheckStepNext(Vector3 curKey, Vector3 lastKey)
+        {
+            if (curKey == Vector3.zero) return true;
+            if (curKey == -lastKey) return true;
+            if (curKey == lastKey * 2) return true;
+            if (curKey == lastKey * -2) return true;
+            if (curKey * 2 == lastKey) return true;
+            if (curKey * -2 == lastKey) return true;
+
+            return false;
         }
 
         private void DisruptClick()
@@ -960,7 +1073,6 @@ namespace CSharp
             if (Mathf.Abs(x) == 2 || Mathf.Abs(y) == 2 || Mathf.Abs(z) == 2)
             {
                 direction = -1;
-                vector /= 2;
                 x /= 2;
                 y /= 2;
                 z /= 2;
